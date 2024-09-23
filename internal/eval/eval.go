@@ -600,7 +600,9 @@ func evalJSONTYPE(args []string, store *dstore.Store) []byte {
 // Returns response.RespNIL if key is expired or it does not exist
 // Returns encoded error response if incorrect number of arguments
 // The RESP value of the key is encoded and then returned
+//! Here 
 func evalJSONGET(args []string, store *dstore.Store) []byte {
+	fmt.Println("This function!!")
 	if len(args) < 1 {
 		return diceerrors.NewErrArity("JSON.GET")
 	}
