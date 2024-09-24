@@ -600,9 +600,7 @@ func evalJSONTYPE(args []string, store *dstore.Store) []byte {
 // Returns response.RespNIL if key is expired or it does not exist
 // Returns encoded error response if incorrect number of arguments
 // The RESP value of the key is encoded and then returned
-//! Here 
 func evalJSONGET(args []string, store *dstore.Store) []byte {
-	fmt.Println("This function!!")
 	if len(args) < 1 {
 		return diceerrors.NewErrArity("JSON.GET")
 	}
@@ -628,25 +626,31 @@ func evalJSONGET(args []string, store *dstore.Store) []byte {
 
 	jsonData := obj.Value
 
-	// If path is root, return the entire JSON
-	if path == defaultRootPath {
-		resultBytes, err := sonic.Marshal(jsonData)
-		if err != nil {
-			return diceerrors.NewErrWithMessage("could not serialize result")
-		}
-		return clientio.Encode(string(resultBytes), false)
-	}
-
 	// Parse the JSONPath expression
 	expr, err := jp.ParseString(path)
 	if err != nil {
-		return diceerrors.NewErrWithMessage("invalid JSONPath")
+		fmt.Println("expr case")
+		return diceerrors.NewErrWithMessage(fmt.Sprintf("ERR Path '%s.%s' does not exist", defaultRootPath, path))
 	}
 
 	// Execute the JSONPath query
 	results := expr.Get(jsonData)
 	if len(results) == 0 {
-		return clientio.RespNIL
+		fmt.Println("results len case")
+		return diceerrors.NewErrWithMessage(fmt.Sprintf("ERR Path '%s.%s' does not exist", defaultRootPath, path))
+	}
+
+	fmt.Println(results)
+
+	// If path is root, return the entire JSON
+	if strings.Contains(args[0], defaultRootPath) {
+		fmt.Println("Contains $")
+		jsonArray := []interface{}{results}
+		resultBytes, err := sonic.Marshal(jsonArray)
+		if err != nil {
+			return diceerrors.NewErrWithMessage("could not serialize result")
+		}
+		return clientio.Encode(string(resultBytes), false)
 	}
 
 	// Serialize the result
