@@ -990,6 +990,8 @@ func evalJSONGET(args []string, store *dstore.Store) []byte {
 func jsonGETHelper(store *dstore.Store, path, key string) (result interface{}, err2 []byte) {
 	// Retrieve the object from the database
 	obj := store.Get(key)
+	fmt.Println(obj)
+
 	if obj == nil {
 		return result, nil
 	}
@@ -1002,9 +1004,17 @@ func jsonGETHelper(store *dstore.Store, path, key string) (result interface{}, e
 
 	jsonData := obj.Value
 
+	fmt.Printf("this is jsonData %v\n", jsonData)
+	fmt.Println(path)
 	// If path is root, return the entire JSON
-	if path == defaultRootPath {
-		resultBytes, err := sonic.Marshal(jsonData)
+	if strings.Contains(path, defaultRootPath) {
+		fmt.Println("Found $")
+		jsonArray := []interface{}{jsonData}
+		resultBytes, err := sonic.Marshal(jsonArray)
+
+		fmt.Printf("This is jsonArray : %v \n", jsonArray...)
+		fmt.Printf("This is resultByte :  %v \n", resultBytes)
+
 		if err != nil {
 			return result, diceerrors.NewErrWithMessage("could not serialize result")
 		}
@@ -1014,9 +1024,8 @@ func jsonGETHelper(store *dstore.Store, path, key string) (result interface{}, e
 	// Parse the JSONPath expression
 	expr, err := jp.ParseString(path)
 	if err != nil {
-		return result, diceerrors.NewErrWithMessage("invalid JSONPath")
+		return result, diceerrors.NewErrWithMessage(fmt.Sprintf("ERR Path '%s.%s' does not exist", defaultRootPath, path))
 	}
-
 	// Execute the JSONPath query
 	results := expr.Get(jsonData)
 	if len(results) == 0 {
