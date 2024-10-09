@@ -1074,6 +1074,7 @@ func evalJSONTYPE(args []string, store *dstore.Store) []byte {
 // Returns encoded error response if incorrect number of arguments
 // The RESP value of the key is encoded and then returned
 func evalJSONGET(args []string, store *dstore.Store) []byte {
+	fmt.Println(args)
 	if len(args) < 1 {
 		return diceerrors.NewErrArity("JSON.GET")
 	}
